@@ -3,23 +3,23 @@ export const voiceTypes = [
   {
     id: 'geracao-z',
     name: 'Geração Z',
-    emoji: '🎯',
+    emoji: '😎',
     description: 'leve, direto, tom de influencer',
-    icon: '🎯'
+    icon: '😎'
   },
   {
     id: 'coach',
     name: 'Coach',
-    emoji: '📢',
+    emoji: '🎯',
     description: 'intenso, provocador, energético',
-    icon: '📢'
+    icon: '🎯'
   },
   {
     id: 'sabio',
     name: 'Sábio',
-    emoji: '🧠',
+    emoji: '🧙‍♂️',
     description: 'reflexivo, profundo, filosófico',
-    icon: '🧠'
+    icon: '🧙‍♂️'
   },
   {
     id: 'engracado',
@@ -35,14 +35,14 @@ export const categories = [
     id: 'procrastinacao',
     name: 'Procrastinação',
     emoji: '⏰',
-    description: 'Organize sua mente e comece por onde dá',
+    description: 'Vença a procrastinação e tome ação',
     color: 'from-orange-400 to-red-400'
   },
   {
     id: 'autoconfianca',
-    name: 'Autoconfiança e Autoestima',
+    name: 'Autoconfiança',
     emoji: '💝',
-    description: 'Fortaleça sua visão sobre quem você é',
+    description: 'Desenvolva sua autoestima e confiança',
     color: 'from-pink-400 to-red-400'
   },
   {
@@ -107,41 +107,62 @@ export const quotes = {
   ]
 };
 
-export const achievements = [
+export const achievementsData = [
   {
     id: 'primeiro-passo',
-    name: 'Primeiro Passo',
+    title: 'Primeiro Passo',
     description: 'Completou sua primeira citação',
     icon: '🎯',
-    requirement: 1
+    goal: 1,
+    metric: 'totalCompleted',
   },
   {
-    id: 'sequencia-3',
-    name: '3 Dias Seguidos',
-    description: 'Manteve uma sequência de 3 dias',
-    icon: '🔥',
-    requirement: 3
-  },
-  {
-    id: 'sequencia-7',
-    name: '7 Dias Seguidos',
-    description: 'Uma semana completa de motivação',
-    icon: '⭐',
-    requirement: 7
-  },
-  {
-    id: 'explorador',
-    name: 'Explorador',
-    description: 'Visitou todas as categorias',
-    icon: '🗺️',
-    requirement: 'all_categories'
+    id: 'first_favorite',
+    title: 'Primeira Favorita',
+    description: 'Favoritou sua primeira citação',
+    icon: '❤️',
+    goal: 1,
+    metric: 'totalFavorites',
   },
   {
     id: 'colecionador',
-    name: 'Colecionador',
+    title: 'Colecionador',
     description: 'Favoritou 10 citações',
     icon: '💎',
-    requirement: 10
-  }
+    goal: 10,
+    metric: 'totalFavorites',
+  },
+  {
+    id: 'sequencia-3',
+    title: '3 Dias Seguidos',
+    description: 'Manteve uma sequência de 3 dias',
+    icon: '🔥',
+    goal: 3,
+    metric: 'currentStreak',
+  },
+  {
+    id: 'sequencia-7',
+    title: '7 Dias Seguidos',
+    description: 'Uma semana completa de motivação',
+    icon: '⭐',
+    goal: 7,
+    metric: 'currentStreak',
+  },
+  {
+    id: 'sequencia-21',
+    title: '21 Dias de Ouro',
+    description: 'Manteve a chama acesa por 21 dias',
+    icon: '🏆',
+    goal: 21,
+    metric: 'currentStreak',
+  },
+  {
+    id: 'explorador',
+    title: 'Explorador',
+    description: 'Visitou todas as 4 categorias',
+    icon: '🗺️',
+    goal: 4,
+    metric: 'categoriesVisited',
+  },
 ];
 

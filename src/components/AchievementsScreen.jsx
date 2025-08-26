@@ -3,56 +3,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Trophy } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
-export function AchievementsScreen({ onBack }) {
-  const { stats } = useApp();
-
-  const achievements = [
-    {
-      id: 'first_step',
-      title: 'Primeiro Passo',
-      description: 'Completou sua primeira citação',
-      icon: '🎯',
-      progress: stats.completedQuotes > 0 ? 1 : 0,
-      total: 1,
-      unlocked: stats.completedQuotes > 0
-    },
-    {
-      id: 'three_days',
-      title: '3 Dias Seguidos',
-      description: 'Manteve uma sequência de 3 dias',
-      icon: '🔥',
-      progress: Math.min(stats.currentStreak, 3),
-      total: 3,
-      unlocked: stats.currentStreak >= 3
-    },
-    {
-      id: 'seven_days',
-      title: '7 Dias Seguidos',
-      description: 'Manteve uma sequência de 7 dias',
-      icon: '⭐',
-      progress: Math.min(stats.currentStreak, 7),
-      total: 7,
-      unlocked: stats.currentStreak >= 7
-    },
-    {
-      id: 'first_favorite',
-      title: 'Primeira Favorita',
-      description: 'Favoritou sua primeira citação',
-      icon: '❤️',
-      progress: stats.favorites > 0 ? 1 : 0,
-      total: 1,
-      unlocked: stats.favorites > 0
-    },
-    {
-      id: 'explorer',
-      title: 'Explorador',
-      description: 'Visitou todas as 4 categorias',
-      icon: '🗺️',
-      progress: stats.categoriesVisited,
-      total: 4,
-      unlocked: stats.categoriesVisited >= 4
-    }
-  ];
+export function AchievementsScreen() {
+  const { stats, processedAchievements, unlockedAchievements } = useApp();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 flex flex-col p-6 relative overflow-hidden">
@@ -66,7 +18,7 @@ export function AchievementsScreen({ onBack }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <Button
-          onClick={onBack}
+          onClick={() => window.history.back()}
           variant="ghost"
           className="text-white hover:bg-white/20"
         >
@@ -86,58 +38,67 @@ export function AchievementsScreen({ onBack }) {
         </p>
       </div>
 
+      {/* Estatísticas */}
+      <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="bg-white/10 rounded-2xl p-4 text-center backdrop-blur-sm">
+          <p className="text-3xl font-bold text-white">{stats.totalCompleted}</p>
+          <p className="text-white/80 text-sm">Dias Completados</p>
+        </div>
+        <div className="bg-white/10 rounded-2xl p-4 text-center backdrop-blur-sm">
+          <p className="text-3xl font-bold text-white">{unlockedAchievements.length}</p>
+          <p className="text-white/80 text-sm">Conquistas</p>
+        </div>
+      </div>
+
       {/* Lista de conquistas */}
       <div className="flex-1 space-y-4 pb-24">
-        {achievements.map((achievement) => (
-          <div
-            key={achievement.id}
-            className={`bg-white rounded-2xl p-6 shadow-lg ${
-              achievement.unlocked ? 'border-2 border-yellow-400' : 'opacity-75'
-            }`}
-          >
-            <div className="flex items-center gap-4">
-              <div className={`text-4xl ${achievement.unlocked ? '' : 'grayscale'}`}>
-                {achievement.icon}
-              </div>
-              <div className="flex-1">
-                <h3 className={`text-xl font-bold ${
-                  achievement.unlocked ? 'text-gray-800' : 'text-gray-500'
-                }`}>
-                  {achievement.title}
-                </h3>
-                <p className={`text-sm ${
-                  achievement.unlocked ? 'text-gray-600' : 'text-gray-400'
-                }`}>
-                  {achievement.description}
-                </p>
+        {processedAchievements.map((achievement) => {
+          const isUnlocked = unlockedAchievements.includes(achievement.id);
+          return (
+            <div
+              key={achievement.id}
+              className={`bg-white rounded-2xl p-6 shadow-lg ${
+                isUnlocked ? 'border-2 border-yellow-400' : 'opacity-75'
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <div className={`text-4xl ${isUnlocked ? '' : 'grayscale'}`}>
+                  {achievement.icon}
+                </div>
+                <div className="flex-1">
+                  <h3 className={`text-xl font-bold ${isUnlocked ? 'text-gray-800' : 'text-gray-500'}`}>
+                    {achievement.title}
+                  </h3>
+                  <p className={`text-sm ${isUnlocked ? 'text-gray-600' : 'text-gray-400'}`}>
+                    {achievement.description}
+                  </p>
+                  
+                  {/* Barra de progresso */}
+                  <div className="mt-3">
+                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                      <span>Progresso</span>
+                      <span>{achievement.progress}/{achievement.goal}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-300 ${isUnlocked ? 'bg-green-500' : 'bg-gray-400'}`}
+                        style={{
+                          width: `${(achievement.progress / achievement.goal) * 100}%`
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
                 
-                {/* Barra de progresso */}
-                <div className="mt-3">
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Progresso</span>
-                    <span>{achievement.progress}/{achievement.total}</span>
+                {isUnlocked && (
+                  <div className="text-green-500">
+                    <Trophy className="w-6 h-6" />
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        achievement.unlocked ? 'bg-green-500' : 'bg-gray-400'
-                      }`}
-                      style={{
-                        width: `${(achievement.progress / achievement.total) * 100}%`
-                      }}
-                    ></div>
-                  </div>
-                </div>
+                )}
               </div>
-              
-              {achievement.unlocked && (
-                <div className="text-green-500">
-                  <Trophy className="w-6 h-6" />
-                </div>
-              )}
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Mensagem motivacional */}
@@ -147,4 +108,3 @@ export function AchievementsScreen({ onBack }) {
     </div>
   );
 }
-

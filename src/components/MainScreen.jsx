@@ -1,11 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { categories, voiceTypes } from '../data/motivationData';
 import { useApp } from '../context/AppContext';
 import { ArrowRight } from 'lucide-react';
 
-export function MainScreen({ onCategorySelect, onVoiceChange }) {
-  const { selectedVoice } = useApp();
+export function MainScreen() {
+  const navigate = useNavigate();
+  const { selectedVoice, user } = useApp();
   
   const currentVoice = voiceTypes.find(v => v.id === selectedVoice);
 
@@ -23,15 +25,18 @@ export function MainScreen({ onCategorySelect, onVoiceChange }) {
         <h1 className="text-4xl font-bold text-white mb-2">
           Caminho da Motivação
         </h1>
-        <p className="text-white/90 text-lg">
-          365 Dias de apoio e inspiração
+        <p className="text-xl text-white/90 drop-shadow">
+          365 dias de apoio e inspiração
         </p>
       </div>
       
       {/* Card principal */}
-      <div className="bg-yellow-400 rounded-3xl p-6 mb-6 text-center shadow-lg">
-        <div className="text-2xl mb-2">✨</div>
+      <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-3xl p-6 mb-8 text-center shadow-lg max-w-2xl mx-auto w-full relative overflow-hidden">
+        {/* <div className="text-2xl mb-2">✨</div> */}
         <h2 className="text-xl font-bold text-black mb-2">
+          {user?.user_metadata?.display_name && (
+            <span className="block text-lg font-medium text-black/80 mb-2">Olá, {user.user_metadata.display_name}!</span>
+          )}
           Um passo por dia muda tudo. Qual você vai dar hoje?
         </h2>
         <p className="text-black/80">
@@ -40,44 +45,45 @@ export function MainScreen({ onCategorySelect, onVoiceChange }) {
       </div>
       
       {/* Modo atual */}
-      <div className="bg-blue-500/30 rounded-2xl p-4 mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{currentVoice?.emoji}</span>
-          <div>
-            <p className="text-white font-medium">Modo atual:</p>
-            <p className="text-white/80 text-sm">{currentVoice?.name}</p>
-          </div>
-        </div>
+      {/* <div className="bg-blue-500/30 rounded-2xl p-4 mb-6 flex items-center justify-between"> */}
+      <div className="flex justify-center mb-8">
         <Button
-          onClick={onVoiceChange}
-          className="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-full"
+          onClick={() => navigate('/voice-selection')}
+          className="flex items-center gap-2 px-6 py-6 bg-white/20 backdrop-blur-sm rounded-full border border-white/30 text-white hover:bg-white/30 transition-all duration-200"
         >
-          Alterar
+          <span className="text-2xl">{currentVoice?.emoji}</span>
+          <span className="text-white font-medium">Modo atual: {currentVoice?.name}</span>
+          {/* <p className="text-white/80 text-md">{currentVoice?.name}</p> */}
         </Button>
       </div>
       
       {/* Categorias */}
-      <div className="flex-1 space-y-4 pb-32">
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => onCategorySelect(category.id)}
-            className={`w-full p-6 rounded-xl bg-gradient-to-r ${category.color} text-white text-left shadow-md border border-white/20 transform transition-all duration-200 hover:scale-[1.02] active:scale-95`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <span className="text-3xl">{category.emoji}</span>
-                <div>
-                  <h3 className="text-xl font-bold mb-1">{category.name}</h3>
+      <div className="flex-1 max-w-2xl mx-auto w-full mb-10">
+        <div className="space-y-4">
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => navigate('/quote/' + category.id)}
+              className={`w-full p-6 rounded-2xl bg-gradient-to-r ${category.color} text-white text-left shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl relative overflow-hidden group`}
+            >
+              {/* Elementos decorativos no botão */}
+              <div className="absolute top-2 right-2 w-4 h-4 bg-white/20 rounded-full group-hover:scale-110 transition-transform"></div>
+              <div className="absolute bottom-2 left-2 w-3 h-3 bg-white/30 rounded-full group-hover:scale-110 transition-transform delay-75"></div>
+              
+              <div className="flex items-center justify-between z-10">
+                <div className="text-left">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-3xl">{category.emoji}</span>
+                    <h3 className="text-xl font-bold">{category.name}</h3>
+                  </div>
                   <p className="text-white/90 text-sm">{category.description}</p>
                 </div>
+                <ArrowRight className="w-6 h-6 text-white/80" />
               </div>
-              <ArrowRight className="w-6 h-6 text-white/80" />
-            </div>
-          </button>
-        ))}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
-

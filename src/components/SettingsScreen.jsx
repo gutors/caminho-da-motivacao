@@ -1,23 +1,26 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, RotateCcw, RefreshCw } from 'lucide-react';
+import { ArrowLeft, User, RotateCcw, RefreshCw, LogOut } from 'lucide-react';
 import { voiceTypes } from '../data/motivationData';
 import { useApp } from '../context/AppContext';
 
-export function SettingsScreen({ onBack, onVoiceChange, onRestartOnboarding }) {
-  const { selectedVoice, stats } = useApp();
+export function SettingsScreen() {
+  const navigate = useNavigate();
+  const { selectedVoice, stats, supabase } = useApp();
   const currentVoice = voiceTypes.find(v => v.id === selectedVoice);
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
+  };
 
   const handleResetData = () => {
     if (window.confirm('Tem certeza que deseja resetar todos os dados? Esta ação não pode ser desfeita.')) {
       localStorage.clear();
       window.location.reload();
-    }
-  };
-
-  const handleRestartOnboarding = () => {
-    if (onRestartOnboarding) {
-      onRestartOnboarding();
     }
   };
 
@@ -33,7 +36,7 @@ export function SettingsScreen({ onBack, onVoiceChange, onRestartOnboarding }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <Button
-          onClick={onBack}
+          onClick={() => navigate(-1)}
           className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -68,7 +71,7 @@ export function SettingsScreen({ onBack, onVoiceChange, onRestartOnboarding }) {
               </div>
             </div>
             <Button
-              onClick={onVoiceChange}
+              onClick={() => navigate('/voice-selection')}
               className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-full"
             >
               Alterar
@@ -115,7 +118,7 @@ export function SettingsScreen({ onBack, onVoiceChange, onRestartOnboarding }) {
               </div>
             </div>
             <Button
-              onClick={handleRestartOnboarding}
+              onClick={() => navigate('/welcome')}
               className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-full"
             >
               Refazer
@@ -131,15 +134,36 @@ export function SettingsScreen({ onBack, onVoiceChange, onRestartOnboarding }) {
               <div>
                 <h3 className="text-white font-bold">Resetar Dados</h3>
                 <p className="text-white/80 text-sm">
-                  Limpar todo o progresso
+                  Limpar todo o progresso local
                 </p>
               </div>
             </div>
             <Button
               onClick={handleResetData}
-              className="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded-full"
+              className="bg-yellow-500 hover:bg-yellow-600 text-white text-sm px-4 py-2 rounded-full"
             >
               Resetar
+            </Button>
+          </div>
+        </div>
+
+        {/* Logout */}
+        <div className="bg-white/10 rounded-2xl p-6 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <LogOut className="w-6 h-6 text-white" />
+              <div>
+                <h3 className="text-white font-bold">Sair da Conta</h3>
+                <p className="text-white/80 text-sm">
+                  Finalizar a sessão atual
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded-full"
+            >
+              Sair
             </Button>
           </div>
         </div>
@@ -155,4 +179,3 @@ export function SettingsScreen({ onBack, onVoiceChange, onRestartOnboarding }) {
     </div>
   );
 }
-

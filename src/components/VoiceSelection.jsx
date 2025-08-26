@@ -1,14 +1,16 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { voiceTypes } from '../data/motivationData';
 import { useApp } from '../context/AppContext';
 
-export function VoiceSelection({ onBack, onContinue }) {
-  const { selectedVoice, setSelectedVoice } = useApp();
+export function VoiceSelection() {
+  const navigate = useNavigate();
+  const { selectedVoice, updateSelectedVoice } = useApp();
 
   const handleVoiceSelect = (voiceId) => {
-    setSelectedVoice(voiceId);
+    updateSelectedVoice(voiceId);
   };
 
   return (
@@ -19,16 +21,6 @@ export function VoiceSelection({ onBack, onContinue }) {
       <div className="absolute bottom-32 left-20 w-10 h-10 bg-purple-300 rounded-full opacity-50 animate-bounce delay-300"></div>
       <div className="absolute bottom-60 right-32 w-6 h-6 bg-green-300 rounded-full opacity-60 animate-pulse delay-500"></div>
       <div className="absolute top-32 left-16 w-14 h-14 bg-blue-300 rounded-full opacity-40 animate-bounce delay-700"></div>
-      
-      {/* Botão voltar */}
-      <Button
-        onClick={onBack}
-        variant="ghost"
-        className="self-start text-white hover:bg-white/20 mb-8"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Voltar
-      </Button>
       
       {/* Ícone principal */}
       <div className="text-6xl text-center mb-8 animate-pulse">
@@ -42,7 +34,7 @@ export function VoiceSelection({ onBack, onContinue }) {
         </h1>
         
         <p className="text-xl text-white/90 mb-8 text-center">
-          Escolha como prefere ser motivado hoje. Você pode mudar a qualquer momento.
+          Escolha como prefere ser motivado hoje.
         </p>
         
         {/* Grid de vozes */}
@@ -51,17 +43,19 @@ export function VoiceSelection({ onBack, onContinue }) {
             <button
               key={voice.id}
               onClick={() => handleVoiceSelect(voice.id)}
-              className={`p-6 rounded-2xl border-2 transition-all duration-200 text-left ${
+              className={`p-6 rounded-2xl border-2 transition-all duration-200 transform hover:scale-105 ${
                 selectedVoice === voice.id
-                  ? 'border-yellow-400 bg-white/20 scale-105'
-                  : 'border-white/30 bg-white/10 hover:bg-white/20'
+                  ? 'bg-white border-yellow-400 text-black shadow-lg'
+                  : 'bg-white/10 border-white/30 text-white hover:bg-white/20'
               }`}
             >
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-2xl">{voice.emoji}</span>
-                <h3 className="text-xl font-semibold text-white">{voice.name}</h3>
-              </div>
-              <p className="text-white/80 text-sm">{voice.description}</p>
+              <div className="text-4xl mb-3">{voice.emoji}</div>
+              <h3 className="text-xl font-bold mb-2">{voice.name}</h3>
+              <p className={`text-sm ${
+                selectedVoice === voice.id ? 'text-gray-600' : 'text-white/80'
+              }`}>
+                {voice.description}
+              </p>
             </button>
           ))}
         </div>
@@ -71,7 +65,7 @@ export function VoiceSelection({ onBack, onContinue }) {
         </p>
         
         <Button 
-          onClick={onContinue}
+          onClick={() => navigate('/')}
           disabled={!selectedVoice}
           className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-3 rounded-full text-lg shadow-lg transform transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
@@ -81,4 +75,3 @@ export function VoiceSelection({ onBack, onContinue }) {
     </div>
   );
 }
-
