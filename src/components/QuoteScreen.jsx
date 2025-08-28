@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Heart, Share2, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { quotes365, getQuoteByDay } from '../data/quotes365';
 import { categories, voiceTypes } from '../data/motivationData';
 import { useApp } from '../context/AppContext';
 
-export function QuoteScreen({ category, onBack, onVoiceChange, currentDay, onPreviousDay, onNextDay }) {
+export function QuoteScreen({ onVoiceChange, currentDay, onPreviousDay, onNextDay }) {
+  const { category } = useParams();
+  const navigate = useNavigate();
   const { selectedVoice, toggleFavorite, isFavorite, completeQuote } = useApp();
   
   const currentQuote = getQuoteByDay(currentDay - 1);
@@ -34,11 +37,11 @@ export function QuoteScreen({ category, onBack, onVoiceChange, currentDay, onPre
   };
 
   const handleFavorite = () => {
-    toggleFavorite(currentQuote.id, currentQuote.category);
+    toggleFavorite(currentQuote.id, category);
   };
 
   const handleComplete = () => {
-    completeQuote(currentQuote.id, currentQuote.category);
+    completeQuote(currentQuote.id, category);
   };
 
   const handleShare = () => {
@@ -67,7 +70,7 @@ export function QuoteScreen({ category, onBack, onVoiceChange, currentDay, onPre
       {/* Header com botão voltar */}
       <div className="flex items-center justify-between mb-6">
         <Button
-          onClick={onBack}
+          onClick={() => navigate(-1)}
           className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />

@@ -20,9 +20,9 @@ export function AchievementsScreen() {
         <Button
           onClick={() => window.history.back()}
           variant="ghost"
-          className="text-white hover:bg-white/20"
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full flex items-center gap-2"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="w-4 h-4" />
           Voltar
         </Button>
       </div>
@@ -38,20 +38,20 @@ export function AchievementsScreen() {
         </p>
       </div>
 
-      {/* Estatísticas */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="bg-white/10 rounded-2xl p-4 text-center backdrop-blur-sm">
-          <p className="text-3xl font-bold text-white">{stats.totalCompleted}</p>
-          <p className="text-white/80 text-sm">Dias Completados</p>
+      <div className="flex-1 max-w-2xl mx-auto w-full space-y-4 pb-24">
+        {/* Estatísticas */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white/10 rounded-2xl p-4 text-center backdrop-blur-sm">
+            <p className="text-3xl font-bold text-white">{stats.totalCompleted}</p>
+            <p className="text-white/80 text-sm">Dias Concluídos</p>
+          </div>
+          <div className="bg-white/10 rounded-2xl p-4 text-center backdrop-blur-sm">
+            <p className="text-3xl font-bold text-white">{unlockedAchievements.length}</p>
+            <p className="text-white/80 text-sm">Conquistas</p>
+          </div>
         </div>
-        <div className="bg-white/10 rounded-2xl p-4 text-center backdrop-blur-sm">
-          <p className="text-3xl font-bold text-white">{unlockedAchievements.length}</p>
-          <p className="text-white/80 text-sm">Conquistas</p>
-        </div>
-      </div>
 
-      {/* Lista de conquistas */}
-      <div className="flex-1 space-y-4 pb-24">
+        {/* Lista de conquistas */}
         {processedAchievements.map((achievement) => {
           const isUnlocked = unlockedAchievements.includes(achievement.id);
           return (

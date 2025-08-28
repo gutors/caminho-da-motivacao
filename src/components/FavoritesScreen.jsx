@@ -4,7 +4,7 @@ import { Heart, ArrowRight, ArrowLeft } from 'lucide-react';
 import { quotes, categories } from '../data/motivationData';
 import { useApp } from '../context/AppContext';
 
-export function FavoritesScreen({ onBack, onQuoteSelect }) {
+export function FavoritesScreen({ onQuoteSelect }) {
   const { favorites, toggleFavorite } = useApp();
 
   const getFavoriteQuotes = () => {
@@ -39,7 +39,8 @@ export function FavoritesScreen({ onBack, onQuoteSelect }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <Button
-          onClick={onBack}
+          onClick={() => window.history.back()}
+          variant="ghost"
           className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -49,17 +50,18 @@ export function FavoritesScreen({ onBack, onQuoteSelect }) {
 
       {/* Título */}
       <div className="text-center mb-8">
-        <div className="text-4xl mb-4">⭐</div>
-        <h1 className="text-3xl font-bold text-white mb-2">
-          Seus Favoritos
+        <div className="text-6xl mb-4">⭐</div>
+        <h1 className="text-4xl font-bold text-white mb-2">
+          Favoritos
         </h1>
-        <p className="text-white/90">
+        <p className="text-white/90 text-lg">
           Suas citações salvas para inspiração
         </p>
       </div>
 
-      {/* Lista de favoritos */}
-      {favoriteQuotes.length === 0 ? (
+      <div className="max-w-2xl mx-auto w-full">
+        {/* Lista de favoritos */}
+        {favoriteQuotes.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">💫</div>
           <h2 className="text-xl font-bold text-white mb-2">
@@ -112,6 +114,7 @@ export function FavoritesScreen({ onBack, onQuoteSelect }) {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }
