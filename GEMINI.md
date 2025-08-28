@@ -13,6 +13,9 @@
 - Interface names should be prefixed with `I` (e.g., `IUserService`).
 - Private class members should be prefixed with an underscore (`_`).
 - Always use strict equality (`===` and `!==`).
+- Do not rewrite code just for identation purposes, unless asked to.
+- Do not remove decorative content like `<div>` if its not related to the task.
+- Alter only the necessary code for the task, think what is necessary to be changed.
 
 ## Specific Component: `src/lib/api.ts`
 
