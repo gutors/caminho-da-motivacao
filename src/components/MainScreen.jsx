@@ -3,13 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { categories, voiceTypes } from '../data/motivationData';
 import { useApp } from '../context/AppContext';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, PlayCircle } from 'lucide-react';
 
 export function MainScreen() {
   const navigate = useNavigate();
-  const { selectedVoice, user } = useApp();
+  const { selectedVoice, user, progress } = useApp();
   
   const currentVoice = voiceTypes.find(v => v.id === selectedVoice);
+  const lastCategory = categories.find(c => c.id === progress?.last_category_id);
+
+  const handleNavigate = (category) => {
+    const day = progress?.categories[category.id]?.current_day || 1;
+    navigate(`/quote/${category.id}/${day}`);
+  };
+
+  const handleContinue = () => {
+    if (!progress || !lastCategory) return;
+    const day = progress.categories[lastCategory.id]?.current_day || 1;
+    navigate(`/quote/${lastCategory.id}/${day}`);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 flex flex-col p-6 relative overflow-hidden">
@@ -22,12 +34,8 @@ export function MainScreen() {
       
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-white mb-2">
-          Caminho da Motivação
-        </h1>
-        <p className="text-xl text-white/90 drop-shadow">
-          365 dias de apoio e inspiração
-        </p>
+        <h1 className="text-4xl font-bold text-white mb-2">Caminho da Motivação</h1>
+        <p className="text-xl text-white/90 drop-shadow">365 dias de apoio e inspiração</p>
       </div>
       
       {/* Card principal */}
@@ -43,7 +51,15 @@ export function MainScreen() {
           Sua dose diária de motivação te espera
         </p>
       </div>
-      
+      {progress && lastCategory && (
+        <div className="max-w-2xl mx-auto w-full mb-6">
+            <Button onClick={handleContinue} className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/30 py-6">
+                <PlayCircle className="w-6 h-6 mr-3" />
+                Continuar em {lastCategory.name} (Dia {progress.categories[lastCategory.id]?.current_day})
+            </Button>
+        </div>
+      )}
+
       {/* Modo atual */}
       {/* <div className="bg-blue-500/30 rounded-2xl p-4 mb-6 flex items-center justify-between"> */}
       <div className="flex justify-center mb-8">
@@ -63,7 +79,7 @@ export function MainScreen() {
           {categories.map((category) => (
             <button
               key={category.id}
-              onClick={() => navigate('/quote/' + category.id)}
+              onClick={() => handleNavigate(category)}
               className={`w-full p-6 rounded-2xl bg-gradient-to-r ${category.color} text-white text-left shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl relative overflow-hidden group`}
             >
               {/* Elementos decorativos no botão */}

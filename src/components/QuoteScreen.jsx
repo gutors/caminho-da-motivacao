@@ -1,47 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Heart, Share2, Check, ChevronLeft, ChevronRight } from 'lucide-react';
-import { quotes365, getQuoteByDay } from '../data/quotes365';
 import { categories, voiceTypes } from '../data/motivationData';
 import { useApp } from '../context/AppContext';
 
-export function QuoteScreen({ onVoiceChange, currentDay, onPreviousDay, onNextDay }) {
-  const { category } = useParams();
+export function QuoteScreen() {
+  const { category, day } = useParams();
   const navigate = useNavigate();
-  const { selectedVoice, toggleFavorite, isFavorite, completeQuote } = useApp();
-  
-  const currentQuote = getQuoteByDay(currentDay - 1);
+  const { supabase, selectedVoice, toggleFavorite, isFavorite, completeQuote } = useApp();
+
+  const [currentQuote, setCurrentQuote] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const currentDay = parseInt(day, 10);
+  const categoryData = categories.find(c => c.id === category);
   const currentVoice = voiceTypes.find(v => v.id === selectedVoice);
-  const categoryData = categories.find(c => c.id === currentQuote.category);
-  
-  if (!currentQuote) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 flex items-center justify-center p-6">
-        <div className="text-center text-white">
-          <h2 className="text-2xl font-bold mb-4">Citação não encontrada</h2>
-          <Button onClick={onBack} className="bg-white text-black">
-            Voltar
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
-  const handlePrevious = () => {
-    onPreviousDay();
-  };
+  useEffect(() => {
+    const fetchQuote = async () => {
+      setLoading(true);
+      const tableName = `quotes_${category}`;
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq('voice_type', selectedVoice)
+        .eq('id', currentDay); // Assumindo que o ID da citação corresponde ao dia
 
-  const handleNext = () => {
-    onNextDay();
-  };
+      if (error || data.length === 0) {
+        console.error('Erro ao buscar citação:', error);
+        setCurrentQuote(null);
+      } else {
+        setCurrentQuote(data[0]);
+      }
+      setLoading(false);
+    };
 
-  const handleFavorite = () => {
-    toggleFavorite(currentQuote.id, category);
+    if (category && currentDay && selectedVoice) {
+      fetchQuote();
+    }
+  }, [category, currentDay, selectedVoice, supabase]);
+
+  const handleNavigateDay = (offset) => {
+    const newDay = currentDay + offset;
+    if (newDay > 0 && newDay <= 365) { // Limite de 365 dias
+      navigate(`/quote/${category}/${newDay}`);
+    }
   };
 
   const handleComplete = () => {
-    completeQuote(currentQuote.id, category);
+    if (!currentQuote) return;
+    completeQuote(category, currentQuote.id, selectedVoice);
+    handleNavigateDay(1); // Avança para o próximo dia após concluir
   };
 
   const handleShare = () => {
@@ -56,6 +66,20 @@ export function QuoteScreen({ onVoiceChange, currentDay, onPreviousDay, onNextDa
       alert('Citação copiada para a área de transferência!');
     }
   };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">Carregando citação...</div>;
+  }
+
+  if (!currentQuote) {
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-red-500 to-orange-600 flex flex-col justify-center items-center p-6 text-white">
+            <h2 className="text-2xl font-bold mb-4">Citação não encontrada!</h2>
+            <p className='mb-6'>Não foi possível carregar a citação para este dia e voz.</p>
+            <Button onClick={() => navigate(-1)} className="bg-white text-black">Voltar</Button>
+        </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 flex flex-col p-6 relative overflow-hidden">
@@ -77,22 +101,20 @@ export function QuoteScreen({ onVoiceChange, currentDay, onPreviousDay, onNextDa
           Voltar
         </Button>
       </div>
-      
       {/* Categoria e Voz */}
       <div className="flex gap-2 mb-6 justify-center">
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${categoryData.color}`}>
-          <span className="text-lg">{categoryData.emoji}</span>
-          <span className="text-white font-medium text-sm">{categoryData.name}</span>
+        <div className={`flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${categoryData?.color}`}>
+          <span className="text-lg">{categoryData?.emoji}</span>
+          <span className="text-white font-medium text-sm">{categoryData?.name}</span>
         </div>
         <button
-          onClick={onVoiceChange}
+          onClick={() => navigate('/voice-selection')}
           className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border-2 border-blue-300"
         >
           <span className="text-lg">{currentVoice?.emoji}</span>
           <span className="text-gray-800 font-medium text-sm">{currentVoice?.name}</span>
         </button>
       </div>
-      
       {/* Indicador de dia com círculo roxo */}
       <div className="bg-white rounded-full px-6 py-3 mb-6 text-center mx-auto max-w-xs">
         <div className="flex items-center justify-center gap-2">
@@ -102,13 +124,9 @@ export function QuoteScreen({ onVoiceChange, currentDay, onPreviousDay, onNextDa
           <span className="text-gray-800 font-bold">
             Dia {currentDay} de 365
           </span>
-          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
         </div>
       </div>
-      
-      {/* Card da citação */}
       <div className="bg-white rounded-3xl p-6 mb-6 shadow-lg max-w-2xl mx-auto w-full">
-        {/* Insight */}
         <div className="bg-yellow-400 rounded-2xl p-4 mb-4">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-lg">💡</span>
@@ -116,8 +134,6 @@ export function QuoteScreen({ onVoiceChange, currentDay, onPreviousDay, onNextDa
           </div>
           <p className="text-black font-bold text-lg">"{currentQuote.insight}"</p>
         </div>
-        
-        {/* Clareza */}
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">🔍</span>
@@ -127,8 +143,6 @@ export function QuoteScreen({ onVoiceChange, currentDay, onPreviousDay, onNextDa
             {currentQuote.clarity}
           </p>
         </div>
-        
-        {/* Ação Consciente */}
         <div className="bg-green-500 rounded-2xl p-4 mb-6">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-lg">✅</span>
@@ -138,58 +152,50 @@ export function QuoteScreen({ onVoiceChange, currentDay, onPreviousDay, onNextDa
             {currentQuote.action}
           </p>
         </div>
-        
-        {/* Botões de ação */}
         <div className="flex gap-2 mb-4">
           <Button
-            onClick={handleFavorite}
+            onClick={() => toggleFavorite(currentQuote.id, category)}
             className={`flex-1 ${
-              isFavorite(currentQuote.id, currentQuote.category)
-                ? 'bg-pink-500 hover:bg-pink-600'
-                : 'bg-pink-400 hover:bg-pink-500'
+              isFavorite(currentQuote.id, category)
+                ? 'bg-pink-500'
+                : 'bg-pink-200'
             } text-white text-xs py-2 px-2 rounded-xl h-8`}
           >
-            <Heart className={`w-3 h-3 mr-1 ${isFavorite(currentQuote.id, currentQuote.category) ? 'fill-current' : ''}`} />
-            <span className="text-xs">Favoritar</span>
+            <Heart className={`w-3 h-3 mr-1 ${isFavorite(currentQuote.id, category) ? 'fill-current' : ''}`} />
+            Favoritar
           </Button>
-          
           <Button
             onClick={handleShare}
-            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-xs py-2 px-2 rounded-xl h-8"
-          >
+            className="flex-1 bg-blue-500 text-white text-xs py-2 px-2 rounded-xl h-8">
             <Share2 className="w-3 h-3 mr-1" />
-            <span className="text-xs">Compartilhar</span>
+            Compartilhar
           </Button>
           
           <Button
             onClick={handleComplete}
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-2 px-2 rounded-xl h-8"
-          >
+            className="flex-1 bg-green-600 text-white text-xs py-2 px-2 rounded-xl h-8">
             <Check className="w-3 h-3 mr-1" />
-            <span className="text-xs">Concluir</span>
+            Concluir
           </Button>
         </div>
       </div>
-      
-      {/* Navegação entre citações - estilo original */}
+
       <div className="flex items-center justify-between max-w-2xl mx-auto w-full mb-24">
         <Button
-          onClick={onPreviousDay}
-          disabled={currentDay === 1}
-          className="bg-purple-500/80 hover:bg-purple-600 text-white border border-white/30 disabled:opacity-50 px-4 py-2 rounded-xl"
+          onClick={() => handleNavigateDay(-1)}
+          disabled={currentDay <= 1}
+          className="bg-purple-500/80 hover:bg-purple-600 text-white disabled:opacity-50 px-4 py-2 rounded-xl"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Anterior
         </Button>
-        
         <span className="text-white font-medium bg-white/20 px-4 py-2 rounded-full">
           Dia {currentDay} de 365
         </span>
-        
         <Button
-          onClick={onNextDay}
+          onClick={() => handleNavigateDay(1)}
           disabled={currentDay >= 365}
-          className="bg-purple-500/80 hover:bg-purple-600 text-white border border-white/30 disabled:opacity-50 px-4 py-2 rounded-xl"
+          className="bg-purple-500/80 hover:bg-purple-600 text-white disabled:opacity-50 px-4 py-2 rounded-xl"
         >
           Próxima
           <ChevronRight className="w-4 h-4 ml-1" />
@@ -198,4 +204,3 @@ export function QuoteScreen({ onVoiceChange, currentDay, onPreviousDay, onNextDa
     </div>
   );
 }
-
