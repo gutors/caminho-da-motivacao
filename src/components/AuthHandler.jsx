@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { Loader } from 'lucide-react';
 
 /**
  * @returns {null}
@@ -14,18 +15,25 @@ import { useApp } from '../context/AppContext';
  * <Route path="/auth-handler" element={<AuthHandler />} />
  */
 const AuthHandler = () => {
-  const { selectedVoice } = useApp();
+  const { selectedVoice, isProfileLoading } = useApp();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (selectedVoice) {
-      navigate('/');
-    } else {
-      navigate('/voice-selection');
+    if (!isProfileLoading) {
+        if (selectedVoice) {
+            navigate('/');
+        } else {
+            navigate('/welcome');
+        }
     }
-  }, [selectedVoice, navigate]);
+  }, [selectedVoice, navigate, isProfileLoading]);
 
-  return null;
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 flex flex-col justify-center items-center p-6 text-white">
+        <Loader className="w-12 h-12 animate-spin" />
+        <p className="mt-4 text-lg">Carregando seu perfil...</p>
+    </div>
+  );
 };
 
 export default AuthHandler;

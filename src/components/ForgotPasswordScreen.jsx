@@ -1,41 +1,32 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { ArrowLeft } from 'lucide-react';
 
-const AuthScreen = () => {
+const ForgotPasswordScreen = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN') {
-        navigate('/auth-handler');
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
-
-  const handleLogin = async (e) => {
+  const handlePasswordReset = async (e) => {
     e.preventDefault();
     setError(null);
+    setMessage(null);
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/update-password',
       });
       if (error) {
         setError(error.message);
+      } else {
+        setMessage('Se o email estiver correto, você receberá um link para redefinir sua senha.');
       }
     } catch (error) {
       setError(error.message);
@@ -49,11 +40,14 @@ const AuthScreen = () => {
       <Card className="w-full max-w-md bg-white/10 backdrop-blur-sm border-white/20">
         <CardHeader>
           <CardTitle className="text-center text-3xl font-bold text-white">
-            Caminho da Motivação
+            Redefinir Senha
           </CardTitle>
+          <CardDescription className="text-center text-white/80 pt-2">
+            Digite seu email para receber as instruções.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handlePasswordReset}>
             <div className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="email" className="text-white">Seu email</Label>
@@ -64,40 +58,30 @@ const AuthScreen = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="username"
-                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-xl p-3"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="password" className="text-white">Sua senha</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  placeholder="Sua senha segura"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
                   className="bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-xl p-3"
                 />
               </div>
               {error && (
                 <p className="text-red-300 text-sm text-center">{error}</p>
               )}
+              {message && (
+                <p className="text-green-300 text-sm text-center">{message}</p>
+              )}
               <Button type="submit" disabled={loading} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl text-base">
-                {loading ? 'Entrando...' : 'Entrar'}
+                {loading ? 'Enviando...' : 'Enviar Instruções'}
               </Button>
-              <div className="text-center">
-                <Button variant="link" onClick={() => navigate('/forgot-password')} className="text-sm text-violet-300 hover:text-violet-400">
-                  Esqueceu a senha?
-                </Button>
-              </div>
             </div>
           </form>
+          <div className="text-center mt-4">
+            <Button variant="link" onClick={() => navigate('/auth')} className="text-sm text-violet-300 hover:text-violet-400">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar para o Login
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
   );
 };
 
-export default AuthScreen;
+export default ForgotPasswordScreen;

@@ -9,6 +9,8 @@ import {
 import { AppProvider, useApp } from './context/AppContext';
 import AuthScreen from './components/AuthScreen';
 import AuthHandler from './components/AuthHandler';
+import ForgotPasswordScreen from './components/ForgotPasswordScreen';
+import UpdatePasswordScreen from './components/UpdatePasswordScreen';
 import { MainScreen } from './components/MainScreen';
 import { QuoteScreen } from './components/QuoteScreen';
 import { FavoritesScreen } from './components/FavoritesScreen';
@@ -43,6 +45,8 @@ function App() {
       <Router>
         <Routes>
           <Route path="/auth" element={<AuthScreen />} />
+          <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
+          <Route path="/update-password" element={<UpdatePasswordScreen />} />
           <Route path="/auth-handler" element={<AuthHandler />} />
           <Route
             path="/"
