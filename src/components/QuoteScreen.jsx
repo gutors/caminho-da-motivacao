@@ -89,13 +89,12 @@ export function QuoteScreen() {
           <span className="text-lg">{categoryData?.emoji}</span>
           <span className="text-white font-medium text-sm">{categoryData?.name}</span>
         </div>
-        <button
-          onClick={() => navigate('/voice-selection')}
+        <div
           className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border-2 border-blue-300"
         >
           <span className="text-lg">{currentVoice?.emoji}</span>
           <span className="text-gray-800 font-medium text-sm">{currentVoice?.name}</span>
-        </button>
+        </div>
       </div>
       {/* Indicador de dia com círculo roxo */}
       <div className="bg-white rounded-full px-6 py-3 mb-6 text-center mx-auto max-w-xs">

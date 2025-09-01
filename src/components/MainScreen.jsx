@@ -7,7 +7,7 @@ import { ArrowRight, PlayCircle } from 'lucide-react';
 
 export function MainScreen() {
   const navigate = useNavigate();
-  const { selectedVoice, user, progress } = useApp();
+  const { selectedVoice, user, progress, completedQuotes } = useApp();
   
   const currentVoice = voiceTypes.find(v => v.id === selectedVoice);
   const lastCategory = categories.find(c => c.id === progress?.last_category_id);
@@ -51,7 +51,7 @@ export function MainScreen() {
           Sua dose diária de motivação te espera
         </p>
       </div>
-      {progress && lastCategory && (
+      {progress && lastCategory && completedQuotes.length > 0 && (
         <div className="max-w-2xl mx-auto w-full mb-6">
             <Button onClick={handleContinue} className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/30 py-6">
                 <PlayCircle className="w-6 h-6 mr-3" />

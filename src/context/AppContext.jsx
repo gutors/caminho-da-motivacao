@@ -7,14 +7,13 @@ const AppContext = createContext();
 const getDefaultProgress = () => {
   return {
     last_category_id: 'procrastinacao',
-    last_voice_id: 'coach',
+    last_voice_id: null,
     categories: {
       procrastinacao: { current_day: 1 },
       autoconfianca: { current_day: 1 },
       habitos: { current_day: 1 },
       exercicio: { current_day: 1 },
     },
-    visited_categories: []
   };
 };
 
@@ -23,6 +22,7 @@ export function AppProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isQuotesLoading, setQuotesLoading] = useState(true);
+  const [isProfileLoading, setProfileLoading] = useState(true);
 
   const [selectedVoice, setSelectedVoice] = useState(null);
   const [favorites, setFavorites] = useState([]);
@@ -87,34 +87,40 @@ export function AppProvider({ children }) {
 
   const fetchUserData = async () => {
     if (!user) return;
+    setProfileLoading(true);
+    try {
+        const [profileRes, favoritesRes, completedRes, achievementsRes] = await Promise.all([
+          supabase.from('profiles').select('selected_voice, current_streak, last_completed_date, progress').eq('id', user.id).single(),
+          supabase.from('user_favorites').select('quote_id').eq('user_id', user.id),
+          supabase.from('user_completed_quotes').select('quote_id').eq('user_id', user.id),
+          supabase.from('user_achievements').select('achievement_id').eq('user_id', user.id)
+        ]);
 
-    const [profileRes, favoritesRes, completedRes, achievementsRes] = await Promise.all([
-      supabase.from('profiles').select('selected_voice, current_streak, last_completed_date, progress').eq('id', user.id).single(),
-      supabase.from('user_favorites').select('quote_id').eq('user_id', user.id),
-      supabase.from('user_completed_quotes').select('quote_id').eq('user_id', user.id),
-      supabase.from('user_achievements').select('achievement_id').eq('user_id', user.id)
-    ]);
+        const { data: profileData, error: profileError } = profileRes;
+        if (profileError) console.error('Erro ao buscar perfil:', profileError);
+        else if (profileData) {
+          setSelectedVoice(profileData.selected_voice || null);
+          setCurrentStreak(profileData.current_streak || 0);
+          setLastCompletedDate(profileData.last_completed_date);
+          setProgress(profileData.progress && Object.keys(profileData.progress).length > 0 ? profileData.progress : getDefaultProgress());
+        }
 
-    const { data: profileData, error: profileError } = profileRes;
-    if (profileError) console.error('Erro ao buscar perfil:', profileError);
-    else if (profileData) {
-      setSelectedVoice(profileData.selected_voice || 'coach');
-      setCurrentStreak(profileData.current_streak || 0);
-      setLastCompletedDate(profileData.last_completed_date);
-      setProgress(profileData.progress && Object.keys(profileData.progress).length > 0 ? profileData.progress : getDefaultProgress());
+        const { data: favoritesData, error: favoritesError } = favoritesRes;
+        if (favoritesError) console.error('Erro ao buscar favoritos:', favoritesError);
+        else setFavorites(favoritesData.map(f => f.quote_id));
+
+        const { data: completedData, error: completedError } = completedRes;
+        if (completedError) console.error('Erro ao buscar concluídos:', completedError);
+        else setCompletedQuotes(completedData.map(c => c.quote_id));
+
+        const { data: achievementsData, error: achievementsError } = achievementsRes;
+        if (achievementsError) console.error('Erro ao buscar conquistas:', achievementsError);
+        else setUnlockedAchievements(achievementsData.map(a => a.achievement_id));
+    } catch (error) {
+        console.error("Error fetching user data:", error);
+    } finally {
+        setProfileLoading(false);
     }
-
-    const { data: favoritesData, error: favoritesError } = favoritesRes;
-    if (favoritesError) console.error('Erro ao buscar favoritos:', favoritesError);
-    else setFavorites(favoritesData.map(f => f.quote_id));
-
-    const { data: completedData, error: completedError } = completedRes;
-    if (completedError) console.error('Erro ao buscar concluídos:', completedError);
-    else setCompletedQuotes(completedData.map(c => c.quote_id));
-
-    const { data: achievementsData, error: achievementsError } = achievementsRes;
-    if (achievementsError) console.error('Erro ao buscar conquistas:', achievementsError);
-    else setUnlockedAchievements(achievementsData.map(a => a.achievement_id));
   };
 
   const updateSelectedVoice = async (voiceId) => {
@@ -138,9 +144,6 @@ export function AppProvider({ children }) {
     } else {
       newProgress.categories[quote.category] = { current_day: 2 };
     }
-    if (!newProgress.visited_categories.includes(quote.category)) {
-      newProgress.visited_categories.push(quote.category);
-    }
     setProgress(newProgress);
 
     const today = new Date().toISOString().split('T')[0];
@@ -153,17 +156,58 @@ export function AppProvider({ children }) {
       setLastCompletedDate(today);
     }
 
-    const { error: insertError } = await supabase.from('user_completed_quotes').insert({ user_id: user.id, quote_id: quoteId });
+    const { error: insertError } = await supabase.from('user_completed_quotes').insert({ user_id: user.id, quote_id: quoteId, category: quote.category });
     if (!insertError) setCompletedQuotes(prev => [...prev, quoteId]);
     else console.error("Erro ao salvar citação concluída:", insertError);
   };
 
-  const stats = useMemo(() => ({
-    totalCompleted: completedQuotes.length,
-    currentStreak,
-    totalFavorites: favorites.length,
-    categoriesVisited: progress?.visited_categories?.length || 0
-  }), [completedQuotes.length, currentStreak, favorites.length, progress]);
+  const resetUserData = async () => {
+    if (!user) return;
+
+    const [achievementsError, favoritesError, completedError] = await Promise.all([
+        supabase.from('user_achievements').delete().match({ user_id: user.id }),
+        supabase.from('user_favorites').delete().match({ user_id: user.id }),
+        supabase.from('user_completed_quotes').delete().match({ user_id: user.id })
+    ]);
+
+    if (achievementsError.error || favoritesError.error || completedError.error) {
+        console.error("Error deleting user data:", achievementsError.error, favoritesError.error, completedError.error);
+        return;
+    }
+
+    const { error: profileError } = await supabase.from('profiles').update({
+        current_streak: 0,
+        last_completed_date: null,
+        progress: getDefaultProgress(),
+        selected_voice: null
+    }).eq('id', user.id);
+
+    if (profileError) {
+        console.error("Error resetting profile:", profileError);
+        return;
+    }
+
+    // Reset local state
+    setFavorites([]);
+    setCompletedQuotes([]);
+    setUnlockedAchievements([]);
+    setCurrentStreak(0);
+    setLastCompletedDate(null);
+    setProgress(getDefaultProgress());
+    setSelectedVoice(null);
+  };
+
+  const stats = useMemo(() => {
+    const visitedCategories = new Set(
+      completedQuotes.map(quoteId => quotesById[quoteId]?.category).filter(Boolean)
+    );
+    return {
+      totalCompleted: completedQuotes.length,
+      currentStreak,
+      totalFavorites: favorites.length,
+      categoriesVisited: visitedCategories.size
+    }
+  }, [completedQuotes, currentStreak, favorites.length, quotesById]);
 
   const processedAchievements = useMemo(() => {
     if (!stats) return [];
@@ -190,24 +234,28 @@ export function AppProvider({ children }) {
   const toggleFavorite = async (quoteId) => {
     if (!user) return;
 
+    const quote = quotesById[quoteId];
+    if (!quote) return;
+
     const isCurrentlyFavorite = isFavorite(quoteId);
     if (isCurrentlyFavorite) {
       setFavorites(prev => prev.filter(id => id !== quoteId));
       await supabase.from('user_favorites').delete().match({ user_id: user.id, quote_id: quoteId });
     } else {
       setFavorites(prev => [...prev, quoteId]);
-      await supabase.from('user_favorites').insert({ user_id: user.id, quote_id: quoteId });
+      await supabase.from('user_favorites').insert({ user_id: user.id, quote_id: quoteId, category: quote.category });
     }
   };
 
   const value = {
-    session, user, loading, isQuotesLoading, supabase,
+    session, user, loading, isQuotesLoading, isProfileLoading, supabase,
     selectedVoice, updateSelectedVoice,
     favorites, completedQuotes, completeQuote,
     currentStreak, unlockedAchievements,
     stats, progress, processedAchievements,
     isFavorite, toggleFavorite,
     quotesByDay, quotesById,
+    resetUserData,
   };
 
   return (

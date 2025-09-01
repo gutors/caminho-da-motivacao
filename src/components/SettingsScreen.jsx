@@ -1,13 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, User, RotateCcw, RefreshCw, LogOut } from 'lucide-react';
 import { voiceTypes } from '../data/motivationData';
 import { useApp } from '../context/AppContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export function SettingsScreen() {
   const navigate = useNavigate();
-  const { selectedVoice, stats, supabase } = useApp();
+  const { selectedVoice, stats, supabase, resetUserData } = useApp();
   const currentVoice = voiceTypes.find(v => v.id === selectedVoice);
 
   const handleLogout = async () => {
@@ -17,11 +28,9 @@ export function SettingsScreen() {
     }
   };
 
-  const handleResetData = () => {
-    if (window.confirm('Tem certeza que deseja resetar todos os dados? Esta ação não pode ser desfeita.')) {
-      localStorage.clear();
-      window.location.reload();
-    }
+  const handleResetData = async () => {
+    await resetUserData();
+    navigate('/welcome');
   };
 
   return (
@@ -87,7 +96,7 @@ export function SettingsScreen() {
           </h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">{stats.completedQuotes}</div>
+              <div className="text-2xl font-bold text-white">{stats.totalCompleted}</div>
               <div className="text-white/80 text-xs">Citações Concluídas</div>
             </div>
             <div className="text-center">
@@ -95,7 +104,7 @@ export function SettingsScreen() {
               <div className="text-white/80 text-xs">Sequência Atual</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">{stats.favorites}</div>
+              <div className="text-2xl font-bold text-white">{stats.totalFavorites}</div>
               <div className="text-white/80 text-xs">Favoritos</div>
             </div>
             <div className="text-center">
@@ -127,25 +136,40 @@ export function SettingsScreen() {
         </div>
 
         {/* Resetar Dados */}
-        <div className="bg-white/10 rounded-2xl p-6 backdrop-blur-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <RotateCcw className="w-6 h-6 text-white" />
-              <div>
-                <h3 className="text-white font-bold">Resetar Dados</h3>
-                <p className="text-white/80 text-sm">
-                  Limpar todo o progresso local
-                </p>
+        <AlertDialog>
+          <div className="bg-white/10 rounded-2xl p-6 backdrop-blur-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <RotateCcw className="w-6 h-6 text-white" />
+                <div>
+                  <h3 className="text-white font-bold">Resetar Dados</h3>
+                  <p className="text-white/80 text-sm">
+                    Limpar todo o progresso local
+                  </p>
+                </div>
               </div>
+              <AlertDialogTrigger asChild>
+                <Button
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white text-sm px-4 py-2 rounded-full"
+                >
+                  Resetar
+                </Button>
+              </AlertDialogTrigger>
             </div>
-            <Button
-              onClick={handleResetData}
-              className="bg-yellow-500 hover:bg-yellow-600 text-white text-sm px-4 py-2 rounded-full"
-            >
-              Resetar
-            </Button>
           </div>
-        </div>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta ação não pode ser desfeita. Todos os seus dados de progresso, incluindo conquistas, favoritos e sequência, serão permanentemente excluídos.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleResetData}>Confirmar</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Logout */}
         <div className="bg-white/10 rounded-2xl p-6 backdrop-blur-sm">
