@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Heart, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -6,71 +6,28 @@ import { useApp } from '../context/AppContext';
 import { categories } from '../data/motivationData';
 
 export function FavoritesScreen() {
-  const { supabase, favorites, toggleFavorite, progress } = useApp();
+  const { 
+    quotesById,
+    isQuotesLoading,
+    favorites, 
+    toggleFavorite, 
+  } = useApp();
   const navigate = useNavigate();
-  const [favoriteQuotes, setFavoriteQuotes] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchFavoriteQuotes = async () => {
-      if (favorites.length === 0) {
-        setLoading(false);
-        return;
-      }
+  const favoriteQuotes = favorites.map(quoteId => {
+    const quote = quotesById[quoteId];
+    if (!quote) return null;
+    return {
+        ...quote,
+        categoryData: categories.find(c => c.id === quote.category)
+    }
+  }).filter(Boolean);
 
-      // Agrupa os favoritos por categoria para fazer uma query por tabela
-      const groupedFavorites = favorites.reduce((acc, fav) => {
-        if (!acc[fav.category]) {
-          acc[fav.category] = [];
-        }
-        acc[fav.category].push(fav.quote_id);
-        return acc;
-      }, {});
-
-      try {
-        const promises = Object.entries(groupedFavorites).map(async ([category, ids]) => {
-          const tableName = `quotes_${category}`;
-          const { data, error } = await supabase
-            .from(tableName)
-            .select('*')
-            .in('id', ids);
-
-          if (error) {
-            console.error(`Erro ao buscar favoritos da categoria ${category}:`, error);
-            return [];
-          }
-          // Adiciona a informação da categoria aos dados da citação
-          return data.map(q => ({ ...q, category }));
-        });
-
-        const results = await Promise.all(promises);
-        const allQuotes = results.flat(); // Achata o array de arrays
-        
-        // Adiciona os dados da categoria (emoji, cor, etc)
-        const enrichedQuotes = allQuotes.map(quote => ({
-            ...quote,
-            categoryData: categories.find(c => c.id === quote.category)
-        }));
-
-        setFavoriteQuotes(enrichedQuotes);
-      } catch (error) {
-        console.error('Erro ao processar favoritos:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFavoriteQuotes();
-  }, [favorites, supabase]);
-
-  const handleNavigateToQuote = (category) => {
-    const day = progress.categories[category]?.current_day || 1;
-    // A navegação para um dia específico dentro dos favoritos pode ser complexa,
-    // por enquanto, vamos levar para o dia atual do usuário naquela categoria.
-    navigate(`/quote/${category}`);
+  const handleNavigateToQuote = (category, day) => {
+    navigate(`/quote/${category}/${day}`);
   };
 
-  if (loading) {
+  if (isQuotesLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">Carregando favoritos...</div>;
   }
 
@@ -109,14 +66,14 @@ export function FavoritesScreen() {
         ) : (
           <div className="space-y-4">
             {favoriteQuotes.map((quote) => (
-              <div key={`${quote.category}-${quote.id}`} className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+              <div key={quote.id} className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
                 {/* Header da categoria */}
                 <div className="flex items-center justify-between mb-3">
                   <div className={`flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r ${quote.categoryData?.color} text-xs`}>
                     <span>{quote.categoryData?.emoji}</span>
-                    <span className="text-white font-medium">{quote.categoryData?.name}</span>
+                    <span className="text-white font-medium">{quote.categoryData?.name} - Dia {quote.day}</span>
                   </div>
-                  <button onClick={() => toggleFavorite(quote.id, quote.category)} className="text-pink-300 hover:text-pink-500 transition-colors">
+                  <button onClick={() => toggleFavorite(quote.id)} className="text-pink-300 hover:text-pink-500 transition-colors">
                     <Heart className="w-5 h-5 fill-current" />
                   </button>
                 </div>
@@ -126,7 +83,7 @@ export function FavoritesScreen() {
                   <p className="text-white/80 text-sm leading-relaxed line-clamp-3">{quote.clarity}</p>
                 </div>
                 {/* Botão para ver completa */}
-                <Button onClick={() => handleNavigateToQuote(quote.category)} className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/30">
+                <Button onClick={() => handleNavigateToQuote(quote.category, quote.day)} className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/30">
                   Ver citação na categoria
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>

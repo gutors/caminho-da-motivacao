@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Heart, Share2, Check, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -8,38 +8,20 @@ import { useApp } from '../context/AppContext';
 export function QuoteScreen() {
   const { category, day } = useParams();
   const navigate = useNavigate();
-  const { supabase, selectedVoice, toggleFavorite, isFavorite, completeQuote } = useApp();
-
-  const [currentQuote, setCurrentQuote] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { 
+    quotesByDay,
+    isQuotesLoading,
+    selectedVoice, 
+    toggleFavorite, 
+    isFavorite, 
+    completeQuote 
+  } = useApp();
 
   const currentDay = parseInt(day, 10);
   const categoryData = categories.find(c => c.id === category);
   const currentVoice = voiceTypes.find(v => v.id === selectedVoice);
 
-  useEffect(() => {
-    const fetchQuote = async () => {
-      setLoading(true);
-      const tableName = `quotes_${category}`;
-      const { data, error } = await supabase
-        .from(tableName)
-        .select('*')
-        .eq('voice_type', selectedVoice)
-        .eq('id', currentDay); // Assumindo que o ID da citação corresponde ao dia
-
-      if (error || data.length === 0) {
-        console.error('Erro ao buscar citação:', error);
-        setCurrentQuote(null);
-      } else {
-        setCurrentQuote(data[0]);
-      }
-      setLoading(false);
-    };
-
-    if (category && currentDay && selectedVoice) {
-      fetchQuote();
-    }
-  }, [category, currentDay, selectedVoice, supabase]);
+  const currentQuote = quotesByDay[category]?.[selectedVoice]?.[currentDay];
 
   const handleNavigateDay = (offset) => {
     const newDay = currentDay + offset;
@@ -50,7 +32,7 @@ export function QuoteScreen() {
 
   const handleComplete = () => {
     if (!currentQuote) return;
-    completeQuote(category, currentQuote.id, selectedVoice);
+    completeQuote(currentQuote.id);
     handleNavigateDay(1); // Avança para o próximo dia após concluir
   };
 
@@ -67,7 +49,7 @@ export function QuoteScreen() {
     }
   };
 
-  if (loading) {
+  if (isQuotesLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">Carregando citação...</div>;
   }
 
@@ -154,14 +136,14 @@ export function QuoteScreen() {
         </div>
         <div className="flex gap-2 mb-4">
           <Button
-            onClick={() => toggleFavorite(currentQuote.id, category)}
+            onClick={() => toggleFavorite(currentQuote.id)}
             className={`flex-1 ${
-              isFavorite(currentQuote.id, category)
+              isFavorite(currentQuote.id)
                 ? 'bg-pink-500'
                 : 'bg-pink-200'
             } text-white text-xs py-2 px-2 rounded-xl h-8`}
           >
-            <Heart className={`w-3 h-3 mr-1 ${isFavorite(currentQuote.id, category) ? 'fill-current' : ''}`} />
+            <Heart className={`w-3 h-3 mr-1 ${isFavorite(currentQuote.id) ? 'fill-current' : ''}`} />
             Favoritar
           </Button>
           <Button
