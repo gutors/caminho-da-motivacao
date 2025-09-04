@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, RotateCcw, RefreshCw, LogOut } from 'lucide-react';
+import { ArrowLeft, RotateCcw, RefreshCw, LogOut } from 'lucide-react';
 import { voiceTypes } from '../data/motivationData';
 import { useApp } from '../context/AppContext';
 import {
@@ -18,7 +18,7 @@ import {
 
 export function SettingsScreen() {
   const navigate = useNavigate();
-  const { selectedVoice, stats, supabase, resetUserData } = useApp();
+  const { selectedVoice, stats, supabase, resetUserData, unlockedAchievements, processedAchievements, user } = useApp();
   const currentVoice = voiceTypes.find(v => v.id === selectedVoice);
 
   const handleLogout = async () => {
@@ -42,16 +42,7 @@ export function SettingsScreen() {
       <div className="absolute bottom-60 right-32 text-3xl animate-pulse delay-500">🌺</div>
       <div className="absolute top-48 right-40 text-2xl animate-bounce delay-700">🌱</div>
       
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <Button
-          onClick={() => navigate(-1)}
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full flex items-center gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Voltar
-        </Button>
-      </div>
+      
 
       {/* Título */}
       <div className="text-center mb-8">
@@ -71,7 +62,7 @@ export function SettingsScreen() {
         <div className="bg-white/10 rounded-2xl p-6 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <User className="w-6 h-6 text-white" />
+              <span className="text-2xl">{currentVoice?.emoji || '👤'}</span>
               <div>
                 <h3 className="text-white font-bold">Tipo de Voz</h3>
                 <p className="text-white/80 text-sm">
@@ -108,8 +99,8 @@ export function SettingsScreen() {
               <div className="text-white/80 text-xs">Favoritos</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">{stats.categoriesVisited}/4</div>
-              <div className="text-white/80 text-xs">Categorias</div>
+              <div className="text-2xl font-bold text-white">{unlockedAchievements.length}/{processedAchievements.length}</div>
+              <div className="text-white/80 text-xs">Conquistas</div>
             </div>
           </div>
         </div>
@@ -179,7 +170,7 @@ export function SettingsScreen() {
               <div>
                 <h3 className="text-white font-bold">Sair da Conta</h3>
                 <p className="text-white/80 text-sm">
-                  Finalizar a sessão atual
+                  {user?.email}
                 </p>
               </div>
             </div>

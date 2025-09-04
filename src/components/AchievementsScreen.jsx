@@ -9,23 +9,13 @@ export function AchievementsScreen() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 flex flex-col p-6 relative overflow-hidden">
       {/* Elementos decorativos flutuantes */}
-      <div className="absolute top-20 right-20 w-12 h-12 bg-pink-300 rounded-full opacity-70 animate-bounce"></div>
-      <div className="absolute top-40 right-40 w-8 h-8 bg-yellow-300 rounded-full opacity-60 animate-pulse"></div>
+      <div className="absolute top-20 right-10 w-12 h-12 bg-pink-300 rounded-full opacity-70 animate-bounce"></div>
+      <div className="absolute top-40 right-10 w-8 h-8 bg-yellow-300 rounded-full opacity-60 animate-pulse"></div>
       <div className="absolute bottom-32 left-20 w-10 h-10 bg-purple-300 rounded-full opacity-50 animate-bounce delay-300"></div>
-      <div className="absolute bottom-60 right-32 w-6 h-6 bg-green-300 rounded-full opacity-60 animate-pulse delay-500"></div>
-      <div className="absolute top-32 left-16 w-14 h-14 bg-blue-300 rounded-full opacity-40 animate-bounce delay-700"></div>
+      <div className="absolute bottom-30 right-20 w-6 h-6 bg-green-300 rounded-full opacity-60 animate-pulse delay-500"></div>
+      <div className="absolute top-32 left-10 w-14 h-14 bg-blue-300 rounded-full opacity-40 animate-bounce delay-700"></div>
       
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <Button
-          onClick={() => window.history.back()}
-          variant="ghost"
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full flex items-center gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Voltar
-        </Button>
-      </div>
+      
 
       {/* Título */}
       <div className="text-center mb-8">

@@ -14,19 +14,19 @@ export function MainScreen() {
 
   const handleNavigate = (category) => {
     const day = progress?.categories[category.id]?.current_day || 1;
-    navigate(`/quote/${category.id}/${day}`);
+    navigate(`/quote/${category.id}/${selectedVoice}/${day}`);
   };
 
   const handleContinue = () => {
     if (!progress || !lastCategory) return;
     const day = progress.categories[lastCategory.id]?.current_day || 1;
-    navigate(`/quote/${lastCategory.id}/${day}`);
+    navigate(`/quote/${lastCategory.id}/${selectedVoice}/${day}`);
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 flex flex-col p-6 relative overflow-hidden">
       {/* Elementos decorativos flutuantes */}
-      <div className="absolute top-20 right-20 w-12 h-12 bg-pink-300 rounded-full opacity-70 animate-bounce"></div>
+      <div className="absolute top-20 right-10 w-12 h-12 bg-pink-300 rounded-full opacity-70 animate-bounce"></div>
       <div className="absolute top-40 right-40 w-8 h-8 bg-yellow-300 rounded-full opacity-60 animate-pulse"></div>
       <div className="absolute bottom-32 left-20 w-10 h-10 bg-purple-300 rounded-full opacity-50 animate-bounce delay-300"></div>
       <div className="absolute bottom-60 right-32 w-6 h-6 bg-green-300 rounded-full opacity-60 animate-pulse delay-500"></div>

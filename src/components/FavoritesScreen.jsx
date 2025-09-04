@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Heart, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { categories } from '../data/motivationData';
+import { categories, voiceTypes } from '../data/motivationData';
 
 export function FavoritesScreen() {
   const { 
@@ -19,12 +19,13 @@ export function FavoritesScreen() {
     if (!quote) return null;
     return {
         ...quote,
-        categoryData: categories.find(c => c.id === quote.category)
+        categoryData: categories.find(c => c.id === quote.category),
+        voiceData: voiceTypes.find(v => v.id === quote.voice_type)
     }
   }).filter(Boolean);
 
-  const handleNavigateToQuote = (category, day) => {
-    navigate(`/quote/${category}/${day}`);
+  const handleNavigateToQuote = (category, voice, day) => {
+    navigate(`/quote/${category}/${voice}/${day}`);
   };
 
   if (isQuotesLoading) {
@@ -40,13 +41,7 @@ export function FavoritesScreen() {
       <div className="absolute bottom-60 right-32 text-3xl animate-pulse delay-500">🌺</div>
       <div className="absolute top-48 right-40 text-2xl animate-bounce delay-700">🌱</div>
       
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <Button onClick={() => navigate(-1)} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Voltar
-        </Button>
-      </div>
+      
 
       {/* Título */}
       <div className="text-center mb-8">
@@ -70,20 +65,25 @@ export function FavoritesScreen() {
                 {/* Header da categoria */}
                 <div className="flex items-center justify-between mb-3">
                   <div className={`flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r ${quote.categoryData?.color} text-xs`}>
-                    <span>{quote.categoryData?.emoji}</span>
-                    <span className="text-white font-medium">{quote.categoryData?.name} - Dia {quote.day}</span>
+                    {/* <span>{quote.categoryData?.emoji}</span> */}
+                    <span className="text-white font-medium">Dia {quote.day} - {quote.categoryData?.emoji}{quote.categoryData?.name} - {quote.voiceData?.emoji}{quote.voiceData?.name}</span>
                   </div>
                   <button onClick={() => toggleFavorite(quote.id)} className="text-pink-300 hover:text-pink-500 transition-colors">
                     <Heart className="w-5 h-5 fill-current" />
                   </button>
                 </div>
+                {/* Voice Info
+                <div className="flex items-center gap-2 mb-3 text-xs text-white/80">
+                    <span>{quote.voiceData?.emoji}</span>
+                    <span>Voz: {quote.voiceData?.name}</span>
+                </div> */}
                 {/* Conteúdo da citação */}
                 <div className="mb-3">
                   <h3 className="text-white font-bold text-lg mb-2">"{quote.insight}"</h3>
                   <p className="text-white/80 text-sm leading-relaxed line-clamp-3">{quote.clarity}</p>
                 </div>
                 {/* Botão para ver completa */}
-                <Button onClick={() => handleNavigateToQuote(quote.category, quote.day)} className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/30">
+                <Button onClick={() => handleNavigateToQuote(quote.category, quote.voice_type, quote.day)} className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/30">
                   Ver citação na categoria
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>

@@ -6,34 +6,34 @@ import { categories, voiceTypes } from '../data/motivationData';
 import { useApp } from '../context/AppContext';
 
 export function QuoteScreen() {
-  const { category, day } = useParams();
+  const { category, voice, day } = useParams();
   const navigate = useNavigate();
   const { 
     quotesByDay,
     isQuotesLoading,
-    selectedVoice, 
     toggleFavorite, 
     isFavorite, 
-    completeQuote 
+    completeQuote,
+    completedQuotes,
   } = useApp();
 
   const currentDay = parseInt(day, 10);
   const categoryData = categories.find(c => c.id === category);
-  const currentVoice = voiceTypes.find(v => v.id === selectedVoice);
+  const currentVoice = voiceTypes.find(v => v.id === voice);
 
-  const currentQuote = quotesByDay[category]?.[selectedVoice]?.[currentDay];
+  const currentQuote = quotesByDay[category]?.[voice]?.[currentDay];
+  const isCompleted = currentQuote && completedQuotes.includes(currentQuote.id);
 
   const handleNavigateDay = (offset) => {
     const newDay = currentDay + offset;
     if (newDay > 0 && newDay <= 365) { // Limite de 365 dias
-      navigate(`/quote/${category}/${newDay}`);
+      navigate(`/quote/${category}/${voice}/${newDay}`);
     }
   };
 
   const handleComplete = () => {
-    if (!currentQuote) return;
+    if (!currentQuote || isCompleted) return;
     completeQuote(currentQuote.id);
-    handleNavigateDay(1); // Avança para o próximo dia após concluir
   };
 
   const handleShare = () => {
@@ -58,31 +58,21 @@ export function QuoteScreen() {
         <div className="min-h-screen bg-gradient-to-br from-red-500 to-orange-600 flex flex-col justify-center items-center p-6 text-white">
             <h2 className="text-2xl font-bold mb-4">Citação não encontrada!</h2>
             <p className='mb-6'>Não foi possível carregar a citação para este dia e voz.</p>
-            <Button onClick={() => navigate(-1)} className="bg-white text-black">Voltar</Button>
+            
         </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 flex flex-col p-6 relative overflow-hidden">
-      {/* Elementos decorativos originais - borboletas, plantas e flores */}
-      <div className="absolute top-16 right-16 text-4xl animate-bounce">🌸</div>
-      <div className="absolute top-32 left-16 text-3xl animate-pulse">🌿</div>
-      <div className="absolute bottom-32 left-20 text-4xl animate-bounce delay-300">🦋</div>
-      <div className="absolute bottom-60 right-32 text-3xl animate-pulse delay-500">🌺</div>
-      <div className="absolute top-48 right-40 text-2xl animate-bounce delay-700">🌱</div>
-      <div className="absolute bottom-80 left-40 text-3xl animate-pulse delay-1000">🌼</div>
+      {/* Elementos decorativos de fundo */}
+      <div className="absolute top-34 left-4 text-4xl animate-bounce z-0">🌸</div>
+      <div className="absolute top-6 right-8 text-3xl animate-pulse z-0">🌿</div>
+      <div className="absolute bottom-20 left-16 text-4xl animate-bounce delay-300">🦋</div>
+      <div className="absolute bottom-20 right-16 text-3xl animate-pulse delay-500">🌺</div> 
+      <div className="absolute top-1/5 right-1/6 text-3xl animate-pulse delay-1000">🌼</div>
+
       
-      {/* Header com botão voltar */}
-      <div className="flex items-center justify-between mb-6">
-        <Button
-          onClick={() => navigate(-1)}
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full flex items-center gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Voltar
-        </Button>
-      </div>
       {/* Categoria e Voz */}
       <div className="flex gap-2 mb-6 justify-center">
         <div className={`flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${categoryData?.color}`}>
@@ -107,43 +97,51 @@ export function QuoteScreen() {
           </span>
         </div>
       </div>
-      <div className="bg-white rounded-3xl p-6 mb-6 shadow-lg max-w-2xl mx-auto w-full">
+
+      {isCompleted && (
+        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg mb-4 max-w-2xl mx-auto w-full shadow-md">
+          <div className="flex items-center">
+            <Check className="w-6 h-6 mr-2" />
+            <p className="font-bold">Ação Concluída!</p>
+          </div>
+          <p className="text-sm mt-1">Siga o seu caminho em rumo do seu objetivo!</p>
+        </div>
+      )}
+
+      {/* Card da Citação */}
+      <div className="bg-white rounded-3xl p-4 mb-6 shadow-lg max-w-2xl mx-auto w-full">
         <div className="bg-yellow-400 rounded-2xl p-4 mb-4">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-lg">💡</span>
             <span className="font-bold text-black">Insight</span>
           </div>
-          <p className="text-black font-bold text-lg">"{currentQuote.insight}"</p>
+          <p className="text-black font-bold text-md">"{currentQuote.insight}"</p>
         </div>
-        <div className="mb-4">
+        <div className="bg-blue-400 rounded-2xl p-4 mb-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">🔍</span>
-            <span className="font-bold text-gray-800">Clareza</span>
+            <span className="font-bold text-black">Clareza</span>
           </div>
-          <p className="text-gray-700 leading-relaxed text-sm">
-            {currentQuote.clarity}
-          </p>
+          <p className="text-gray leading-relaxed text-sm">{currentQuote.clarity}</p>
         </div>
         <div className="bg-green-500 rounded-2xl p-4 mb-6">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-lg">✅</span>
-            <span className="font-bold text-white">Ação Consciente</span>
+            <span className="font-bold text-black">Ação Consciente</span>
           </div>
-          <p className="text-white font-medium text-sm">
-            {currentQuote.action}
-          </p>
+          <p className="text-gray font-medium text-sm">{currentQuote.action}</p>
         </div>
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-1 mb-4">
           <Button
             onClick={() => toggleFavorite(currentQuote.id)}
-            className={`flex-1 ${
+            className={`flex-1 ${ 
               isFavorite(currentQuote.id)
                 ? 'bg-pink-500'
                 : 'bg-pink-200'
             } text-white text-xs py-2 px-2 rounded-xl h-8`}
           >
             <Heart className={`w-3 h-3 mr-1 ${isFavorite(currentQuote.id) ? 'fill-current' : ''}`} />
-            Favoritar
+            {isFavorite(currentQuote.id) ? 'Favorito' : 'Favoritar'}
           </Button>
           <Button
             onClick={handleShare}
@@ -151,12 +149,15 @@ export function QuoteScreen() {
             <Share2 className="w-3 h-3 mr-1" />
             Compartilhar
           </Button>
-          
           <Button
             onClick={handleComplete}
-            className="flex-1 bg-green-600 text-white text-xs py-2 px-2 rounded-xl h-8">
+            // disabled={isCompleted}
+            className={`flex-1 ${ 
+              isCompleted ? 'bg-green-600' : 'bg-green-300'
+            } text-white text-xs py-2 px-2 rounded-xl h-8`}
+          >
             <Check className="w-3 h-3 mr-1" />
-            Concluir
+            {isCompleted ? 'Concluído' : 'Concluir'}
           </Button>
         </div>
       </div>
@@ -170,7 +171,7 @@ export function QuoteScreen() {
           <ChevronLeft className="w-4 h-4 mr-1" />
           Anterior
         </Button>
-        <span className="text-white font-medium bg-white/20 px-4 py-2 rounded-full">
+        <span className="text-white font-medium bg-white/20 px-2 py-2 rounded-full">
           Dia {currentDay} de 365
         </span>
         <Button

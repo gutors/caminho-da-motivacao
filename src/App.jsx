@@ -53,7 +53,7 @@ function App() {
             element={<ProtectedRoute><MainLayout /></ProtectedRoute>}
           >
             <Route index element={<MainScreen />} />
-            <Route path="quote/:category/:day" element={<QuoteScreen />} />
+            <Route path="quote/:category/:voice/:day" element={<QuoteScreen />} />
             <Route path="favorites" element={<FavoritesScreen />} />
             <Route path="achievements" element={<AchievementsScreen />} />
             <Route path="settings" element={<SettingsScreen />} />

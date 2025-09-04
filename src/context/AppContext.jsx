@@ -107,11 +107,11 @@ export function AppProvider({ children }) {
 
         const { data: favoritesData, error: favoritesError } = favoritesRes;
         if (favoritesError) console.error('Erro ao buscar favoritos:', favoritesError);
-        else setFavorites(favoritesData.map(f => f.quote_id));
+        else setFavorites(favoritesData.map(f => Number(f.quote_id)));
 
         const { data: completedData, error: completedError } = completedRes;
         if (completedError) console.error('Erro ao buscar concluídos:', completedError);
-        else setCompletedQuotes(completedData.map(c => c.quote_id));
+        else setCompletedQuotes(completedData.map(c => Number(c.quote_id)));
 
         const { data: achievementsData, error: achievementsError } = achievementsRes;
         if (achievementsError) console.error('Erro ao buscar conquistas:', achievementsError);
