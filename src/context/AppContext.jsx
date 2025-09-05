@@ -131,10 +131,18 @@ export function AppProvider({ children }) {
   };
 
   const completeQuote = async (quoteId) => {
-    if (!user || !quoteId) return;
+    if (!user || !quoteId) return false;
 
     const quote = quotesById[quoteId];
-    if (!quote) return;
+    if (!quote) return false;
+
+    const { error: insertError } = await supabase.from('user_completed_quotes').insert({ user_id: user.id, quote_id: quoteId, category: quote.category });
+    if (insertError) {
+      console.error("Erro ao salvar citação concluída:", insertError);
+      return false;
+    }
+    
+    setCompletedQuotes(prev => [...prev, quoteId]);
 
     const newProgress = JSON.parse(JSON.stringify(progress));
     newProgress.last_category_id = quote.category;
@@ -144,21 +152,23 @@ export function AppProvider({ children }) {
     } else {
       newProgress.categories[quote.category] = { current_day: 2 };
     }
-    setProgress(newProgress);
-
+    
     const today = new Date().toISOString().split('T')[0];
     let newStreak = lastCompletedDate === new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split('T')[0] ? currentStreak + 1 : 1;
     
     const { error: profileError } = await supabase.from('profiles').update({ progress: newProgress, current_streak: newStreak, last_completed_date: today }).eq('id', user.id);
-    if (profileError) console.error("Erro ao atualizar perfil:", profileError);
-    else {
+    
+    if (profileError) {
+      console.error("Erro ao atualizar perfil:", profileError);
+      // Even if the profile update fails, the quote is already marked as completed.
+      // This is a trade-off for a simpler implementation.
+    } else {
+      setProgress(newProgress);
       setCurrentStreak(newStreak);
       setLastCompletedDate(today);
     }
 
-    const { error: insertError } = await supabase.from('user_completed_quotes').insert({ user_id: user.id, quote_id: quoteId, category: quote.category });
-    if (!insertError) setCompletedQuotes(prev => [...prev, quoteId]);
-    else console.error("Erro ao salvar citação concluída:", insertError);
+    return true;
   };
 
   const resetUserData = async () => {

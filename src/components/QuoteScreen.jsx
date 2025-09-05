@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Heart, Share2, Check, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -16,13 +16,18 @@ export function QuoteScreen() {
     completeQuote,
     completedQuotes,
   } = useApp();
+  const [optimisticCompleted, setOptimisticCompleted] = useState(false);
 
   const currentDay = parseInt(day, 10);
   const categoryData = categories.find(c => c.id === category);
   const currentVoice = voiceTypes.find(v => v.id === voice);
 
   const currentQuote = quotesByDay[category]?.[voice]?.[currentDay];
-  const isCompleted = currentQuote && completedQuotes.includes(currentQuote.id);
+  const isCompleted = currentQuote && (completedQuotes.includes(currentQuote.id) || optimisticCompleted);
+
+  useEffect(() => {
+    setOptimisticCompleted(false);
+  }, [currentQuote?.id]);
 
   const handleNavigateDay = (offset) => {
     const newDay = currentDay + offset;
@@ -31,9 +36,13 @@ export function QuoteScreen() {
     }
   };
 
-  const handleComplete = () => {
-    if (!currentQuote || isCompleted) return;
-    completeQuote(currentQuote.id);
+  const handleComplete = async () => {
+    if (!currentQuote || isCompleted || optimisticCompleted) return;
+    setOptimisticCompleted(true);
+    const success = await completeQuote(currentQuote.id);
+    if (!success) {
+      setOptimisticCompleted(false);
+    }
   };
 
   const handleShare = () => {
@@ -70,30 +79,31 @@ export function QuoteScreen() {
       <div className="absolute top-6 right-8 text-3xl animate-pulse z-0">🌿</div>
       <div className="absolute bottom-20 left-16 text-4xl animate-bounce delay-300">🦋</div>
       <div className="absolute bottom-20 right-16 text-3xl animate-pulse delay-500">🌺</div> 
-      <div className="absolute top-1/5 right-1/6 text-3xl animate-pulse delay-1000">🌼</div>
-
       
       {/* Categoria e Voz */}
-      <div className="flex gap-2 mb-6 justify-center">
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${categoryData?.color}`}>
+      <div className="flex gap-2 mb-4 justify-center">
+        <div className={`flex items-center gap-2 px-3 py-2 rounded-full bg-gradient-to-r ${categoryData?.color}`}>
           <span className="text-lg">{categoryData?.emoji}</span>
           <span className="text-white font-medium text-sm">{categoryData?.name}</span>
         </div>
         <div
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border-2 border-blue-300"
+          className="flex items-center gap-2 px-3 py-2 rounded-full bg-white border-2 border-blue-300"
         >
           <span className="text-lg">{currentVoice?.emoji}</span>
           <span className="text-gray-800 font-medium text-sm">{currentVoice?.name}</span>
         </div>
       </div>
       {/* Indicador de dia com círculo roxo */}
-      <div className="bg-white rounded-full px-6 py-3 mb-6 text-center mx-auto max-w-xs">
+      <div className="bg-white rounded-full px-2 py-2 mb-4 text-center mx-auto max-w-xs">
         <div className="flex items-center justify-center gap-2">
+          <span className="text-gray-800 font-bold">
+            Dia
+          </span>
           <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
             {currentDay}
           </div>
           <span className="text-gray-800 font-bold">
-            Dia {currentDay} de 365
+            de 365
           </span>
         </div>
       </div>
@@ -151,7 +161,6 @@ export function QuoteScreen() {
           </Button>
           <Button
             onClick={handleComplete}
-            // disabled={isCompleted}
             className={`flex-1 ${ 
               isCompleted ? 'bg-green-600' : 'bg-green-300'
             } text-white text-xs py-2 px-2 rounded-xl h-8`}
