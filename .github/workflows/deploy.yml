@@ -39,6 +39,9 @@ jobs:
       # Passo 5: Executa o build do projeto para gerar a pasta /dist
       - name: Build do Projeto
         run: pnpm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       # Passo 6: Faz o deploy dos ficheiros para o servidor FTP
       - name: Deploy via FTP
